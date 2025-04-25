@@ -10,36 +10,53 @@ const Add = ({token}) => {
   const [image2,setImage2] = useState(false)
   const [image3,setImage3] = useState(false)
   const [image4,setImage4] = useState(false)
+  
+  const [imageLink1, setImageLink1] = useState("")
+  const [imageLink2, setImageLink2] = useState("")
+  const [imageLink3, setImageLink3] = useState("")
+  const [imageLink4, setImageLink4] = useState("")
+  
+  const [useImageLinks, setUseImageLinks] = useState(false)
 
-   const [name, setName] = useState("");
-   const [description, setDescription] = useState("");
-   const [price, setPrice] = useState("");
-   const [category, setCategory] = useState("Men");
-   const [subCategory, setSubCategory] = useState("Topwear");
-   const [bestseller, setBestseller] = useState(false);
-   const [sizes, setSizes] = useState([]);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState("Men");
+  const [subCategory, setSubCategory] = useState("Topwear");
+  const [bestseller, setBestseller] = useState(false);
+  const [sizes, setSizes] = useState([]);
 
-   const onSubmitHandler = async (e) => {
+  const onSubmitHandler = async (e) => {
     e.preventDefault();
 
     try {
       
       const formData = new FormData()
 
-      formData.append("name",name)
-      formData.append("description",description)
-      formData.append("price",price)
-      formData.append("category",category)
-      formData.append("subCategory",subCategory)
-      formData.append("bestseller",bestseller)
-      formData.append("sizes",JSON.stringify(sizes))
+      formData.append("name", name)
+      formData.append("description", description)
+      formData.append("price", price)
+      formData.append("category", category)
+      formData.append("subCategory", subCategory)
+      formData.append("bestseller", bestseller)
+      formData.append("sizes", JSON.stringify(sizes))
+      formData.append("useImageLinks", useImageLinks)
+      
+      if (useImageLinks) {
+        // Use image links instead of file uploads
+        formData.append("imageLink1", imageLink1)
+        formData.append("imageLink2", imageLink2)
+        formData.append("imageLink3", imageLink3)
+        formData.append("imageLink4", imageLink4)
+      } else {
+        // Use file uploads
+        image1 && formData.append("image1", image1)
+        image2 && formData.append("image2", image2)
+        image3 && formData.append("image3", image3)
+        image4 && formData.append("image4", image4)
+      }
 
-      image1 && formData.append("image1",image1)
-      image2 && formData.append("image2",image2)
-      image3 && formData.append("image3",image3)
-      image4 && formData.append("image4",image4)
-
-      const response = await axios.post(backendUrl + "/api/product/add",formData,{headers:{token}})
+      const response = await axios.post(backendUrl + "/api/product/add", formData, {headers:{token}})
 
       if (response.data.success) {
         toast.success(response.data.message)
@@ -49,6 +66,10 @@ const Add = ({token}) => {
         setImage2(false)
         setImage3(false)
         setImage4(false)
+        setImageLink1('')
+        setImageLink2('')
+        setImageLink3('')
+        setImageLink4('')
         setPrice('')
       } else {
         toast.error(response.data.message)
@@ -58,33 +79,82 @@ const Add = ({token}) => {
       console.log(error);
       toast.error(error.message)
     }
-   }
+  }
 
   return (
     <form onSubmit={onSubmitHandler} className='flex flex-col w-full items-start gap-3'>
-        <div>
-          <p className='mb-2'>Upload Image</p>
-
-          <div className='flex gap-2'>
-            <label htmlFor="image1">
-              <img className='w-20' src={!image1 ? assets.upload_area : URL.createObjectURL(image1)} alt="" />
-              <input onChange={(e)=>setImage1(e.target.files[0])} type="file" id="image1" hidden/>
-            </label>
-            <label htmlFor="image2">
-              <img className='w-20' src={!image2 ? assets.upload_area : URL.createObjectURL(image2)} alt="" />
-              <input onChange={(e)=>setImage2(e.target.files[0])} type="file" id="image2" hidden/>
-            </label>
-            <label htmlFor="image3">
-              <img className='w-20' src={!image3 ? assets.upload_area : URL.createObjectURL(image3)} alt="" />
-              <input onChange={(e)=>setImage3(e.target.files[0])} type="file" id="image3" hidden/>
-            </label>
-            <label htmlFor="image4">
-              <img className='w-20' src={!image4 ? assets.upload_area : URL.createObjectURL(image4)} alt="" />
-              <input onChange={(e)=>setImage4(e.target.files[0])} type="file" id="image4" hidden/>
-            </label>
+        <div className='w-full'>
+          <div className='flex items-center gap-2 mb-2'>
+            <p>Upload Images</p>
+            <div className='flex items-center gap-1'>
+              <input 
+                type="checkbox" 
+                id="useImageLinks" 
+                checked={useImageLinks} 
+                onChange={() => setUseImageLinks(prev => !prev)}
+              />
+              <label htmlFor="useImageLinks">Use image links</label>
+            </div>
           </div>
+
+          {useImageLinks ? (
+            <div className='flex flex-col gap-2 w-full max-w-[500px]'>
+              <input 
+                type="text" 
+                placeholder="Image 1 URL (required)" 
+                value={imageLink1} 
+                onChange={(e) => setImageLink1(e.target.value)}
+                className='px-3 py-2 border'
+                required
+              />
+              <input 
+                type="text" 
+                placeholder="Image 2 URL (optional)" 
+                value={imageLink2} 
+                onChange={(e) => setImageLink2(e.target.value)}
+                className='px-3 py-2 border'
+              />
+              <input 
+                type="text" 
+                placeholder="Image 3 URL (optional)" 
+                value={imageLink3} 
+                onChange={(e) => setImageLink3(e.target.value)}
+                className='px-3 py-2 border'
+              />
+              <input 
+                type="text" 
+                placeholder="Image 4 URL (optional)" 
+                value={imageLink4} 
+                onChange={(e) => setImageLink4(e.target.value)}
+                className='px-3 py-2 border'
+              />
+              <p className='text-xs text-gray-500'>
+                Paste Google Drive links or any direct image URLs
+              </p>
+            </div>
+          ) : (
+            <div className='flex gap-2'>
+              <label htmlFor="image1">
+                <img className='w-20' src={!image1 ? assets.upload_area : URL.createObjectURL(image1)} alt="" />
+                <input onChange={(e)=>setImage1(e.target.files[0])} type="file" id="image1" hidden/>
+              </label>
+              <label htmlFor="image2">
+                <img className='w-20' src={!image2 ? assets.upload_area : URL.createObjectURL(image2)} alt="" />
+                <input onChange={(e)=>setImage2(e.target.files[0])} type="file" id="image2" hidden/>
+              </label>
+              <label htmlFor="image3">
+                <img className='w-20' src={!image3 ? assets.upload_area : URL.createObjectURL(image3)} alt="" />
+                <input onChange={(e)=>setImage3(e.target.files[0])} type="file" id="image3" hidden/>
+              </label>
+              <label htmlFor="image4">
+                <img className='w-20' src={!image4 ? assets.upload_area : URL.createObjectURL(image4)} alt="" />
+                <input onChange={(e)=>setImage4(e.target.files[0])} type="file" id="image4" hidden/>
+              </label>
+            </div>
+          )}
         </div>
 
+        {/* Rest of the form remains unchanged */}
         <div className='w-full'>
           <p className='mb-2'>Product name</p>
           <input onChange={(e)=>setName(e.target.value)} value={name} className='w-full max-w-[500px] px-3 py-2' type="text" placeholder='Type here' required/>
